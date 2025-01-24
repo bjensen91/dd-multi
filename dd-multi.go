@@ -40,6 +40,9 @@ import (
 	"sync"
 	"syscall"
 	"time"
+
+	// Added import for terminal size
+	"golang.org/x/term"
 )
 
 // ANSI color codes
@@ -48,9 +51,19 @@ const (
 	DarkGreen  = "\033[32m"
 	LightGreen = "\033[92m"
 	Grey       = "\033[90m"
+)
 
-	DefaultCols  = 80  // assume 80-column terminal
-	MaxTransfers = 50  // define up to 50 parallel transfers
+const (
+	DefaultCols  = 80
+	DefaultRows  = 24
+	MaxTransfers = 50
+)
+
+// Global vars for fullscreen mode & terminal size
+var (
+	fullscreen   bool
+	terminalCols = DefaultCols
+	terminalRows = DefaultRows
 )
 
 // bitClearAndSet is used for conv=, oflag= mappings
@@ -75,7 +88,7 @@ type Transfer struct {
 	InputFilename  string
 	OutputFilename string
 
-	Bs   int64
+	Bs    int64
 	Count int64
 	Size  int64
 	Skip  int64
@@ -303,6 +316,9 @@ func run(stdin io.Reader, stdout io.WriteSeeker) error {
 
 	numTransfers := f.Int("numTransfers", 0, "Number of parallel transfers (1..50)")
 
+	// New fullscreen flag
+	fsFullscreen := f.Bool("fullscreen", false, "Center progress bar(s) in fullscreen mode")
+
 	// We'll store each set in slices
 	inputFiles := make([]string, MaxTransfers)
 	outputFiles := make([]string, MaxTransfers)
@@ -339,6 +355,16 @@ func run(stdin io.Reader, stdout io.WriteSeeker) error {
 	}
 
 	f.Parse(convertArgs(os.Args[1:]))
+
+	// If -fullscreen, attempt to get terminal size
+	if *fsFullscreen {
+		w, h, err := term.GetSize(int(os.Stdout.Fd()))
+		if err == nil {
+			terminalCols = w
+			terminalRows = h
+		}
+		fullscreen = true
+	}
 
 	if *numTransfers <= 0 || *numTransfers > MaxTransfers {
 		usage()
@@ -411,7 +437,12 @@ func run(stdin io.Reader, stdout io.WriteSeeker) error {
 	progressWg.Add(1)
 	go func() {
 		defer progressWg.Done()
-		mp := &MultiProgress{Transfers: transfers}
+		mp := &MultiProgress{
+			Transfers:  transfers,
+			Fullscreen: fullscreen,
+			TermCols:   terminalCols,
+			TermRows:   terminalRows,
+		}
 		mp.startProgress()
 	}()
 
@@ -437,15 +468,32 @@ func run(stdin io.Reader, stdout io.WriteSeeker) error {
 
 // MultiProgress prints lines for multiple Transfers
 type MultiProgress struct {
-	Transfers []*Transfer
+	Transfers  []*Transfer
+	Fullscreen bool
+	TermCols   int
+	TermRows   int
 }
 
 func (mp *MultiProgress) startProgress() {
+	linesPerTransfer := 2
+	totalLines := linesPerTransfer * len(mp.Transfers)
+
+	// If fullscreen, clear screen and vertically center if there's room
+	if mp.Fullscreen {
+		// Clear entire screen, move cursor to top-left
+		fmt.Print("\033[2J\033[H")
+
+		if mp.TermRows > totalLines {
+			topMargin := (mp.TermRows - totalLines) / 2
+			fmt.Print(strings.Repeat("\n", topMargin))
+		}
+	}
+
+	// Initial print
 	mp.printAll(false)
+
 	ticker := time.NewTicker(500 * time.Millisecond)
 	defer ticker.Stop()
-
-	linesPerTransfer := 2
 
 	for {
 		select {
@@ -460,8 +508,8 @@ func (mp *MultiProgress) startProgress() {
 					break
 				}
 			}
-			totalLines := linesPerTransfer * len(mp.Transfers)
-			fmt.Printf("\033[%dA", totalLines) // move cursor up
+			// Move cursor up to re-print the same lines
+			fmt.Printf("\033[%dA", totalLines)
 			mp.printAll(allDone)
 			if allDone {
 				return
@@ -475,7 +523,7 @@ func (mp *MultiProgress) printAll(finished bool) {
 	for _, tr := range mp.Transfers {
 		// line 1: banner
 		banner := fmt.Sprintf("%s --> %s", tr.InputFilename, tr.OutputFilename)
-		fmt.Println(centerText(banner, DefaultCols))
+		fmt.Println(centerText(banner, mp.TermCols))
 
 		// line 2: progress
 		tr.Mutex.Lock()
@@ -532,7 +580,8 @@ func (mp *MultiProgress) printAll(finished bool) {
 		leftSide := leftGrey + " " + bar + " "
 		line := leftSide + rateGrey
 		totalUsed := len(stripANSI(leftSide)) + len(stripANSI(rateGrey))
-		extra := DefaultCols - totalUsed
+
+		extra := mp.TermCols - totalUsed
 		if extra > 0 {
 			line += strings.Repeat(" ", extra)
 		}
