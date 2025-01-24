@@ -77,7 +77,7 @@ For each transfer, you’ll see:
 
 ### Flag Reference
 
-- ``: Number of parallel transfers (1-50).
+- : Number of parallel transfers (1-50).
 - **For each transfer **``** (1 to N):**
   - `-if{i}`: Input file/device (e.g., `/dev/zero`, `/dev/urandom`, `input.iso`).
   - `-of{i}`: Output file/device (e.g., `/dev/sda`, `output.img`).
