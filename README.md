@@ -29,8 +29,8 @@ A Go-based `dd` clone that supports **parallel transfers** with per-transfer pro
 Clone the repository and build the binary:
 
 ```bash
-git clone https://github.com/bjensen91/multi-transfer-dd
-cd multi-transfer-dd
+git clone https://github.com/bjensen91/dd-multi
+cd dd-multi
 go build -o dd-multi dd-multi.go
 ```
 
