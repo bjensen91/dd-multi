@@ -54,9 +54,9 @@ sudo ./dd-multi -numTransfers=3 \
 
 Each transfer has its own configuration:
 
-- **Transfer 1**: Copies 1 GB of zeros to `zero1.img`.
-- **Transfer 2**: Copies 1 GB of random data to `random1.img`.
-- **Transfer 3**: Copies 2 GB from `input.iso` to `output.img`.
+- **Transfer 1**: Copies 1 GB of random data to `random.img`.
+- **Transfer 2**: Copies 1 GB of zeros to `zero.img`.
+- **Transfer 3**: Copies FreeBSD.iso to `/dev/sdX`.
 
 ### Progress Bar
 
