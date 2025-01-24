@@ -59,18 +59,10 @@ Each transfer has its own configuration:
 - **Transfer 2**: Copies 1 GB of random data to `random1.img`.
 - **Transfer 3**: Copies 2 GB from `input.iso` to `output.img`.
 
-### Progress Bar Explanation
+### Progress Bar
 
-For each transfer, you’ll see:
+![Progress Bar Demo](demo.gif)
 
-1. A **centered header** showing the input and output files:
-   ```
-   /dev/zero --> zero1.img
-   ```
-2. A **progress bar line**:
-   ```
-   00:01:23 -----------###########-----------  120.00 MB/s
-   ```
    - **Left**: Countdown timer (or elapsed time after completion).
    - **Middle**: Progress bar (dark green to light green as progress increases).
    - **Right**: Transfer rate in MB/s.
