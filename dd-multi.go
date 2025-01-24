@@ -40,9 +40,6 @@ import (
 	"sync"
 	"syscall"
 	"time"
-
-	// Added import for terminal size
-	"golang.org/x/term"
 )
 
 // ANSI color codes
@@ -53,13 +50,14 @@ const (
 	Grey       = "\033[90m"
 )
 
+// We always assume an 80×24 terminal.
 const (
 	DefaultCols  = 80
 	DefaultRows  = 24
 	MaxTransfers = 50
 )
 
-// Global vars for fullscreen mode & terminal size
+// We'll allow a fullscreen mode but always default to 80×24.
 var (
 	fullscreen   bool
 	terminalCols = DefaultCols
@@ -315,8 +313,6 @@ func run(stdin io.Reader, stdout io.WriteSeeker) error {
 	f := flag.NewFlagSet("dd_multi_n", flag.ExitOnError)
 
 	numTransfers := f.Int("numTransfers", 0, "Number of parallel transfers (1..50)")
-
-	// New fullscreen flag
 	fsFullscreen := f.Bool("fullscreen", false, "Center progress bar(s) in fullscreen mode")
 
 	// We'll store each set in slices
@@ -331,7 +327,7 @@ func run(stdin io.Reader, stdout io.WriteSeeker) error {
 	seekVals := make([]int64, MaxTransfers)
 	sizeVals := make([]int64, MaxTransfers)
 
-	// Pre-define all flags so that we won't get "flag provided but not defined"
+	// Pre-define all flags so we don't get "flag provided but not defined"
 	for i := 1; i <= MaxTransfers; i++ {
 		f.StringVar(&inputFiles[i-1], fmt.Sprintf("if%d", i), "",
 			fmt.Sprintf("Input file #%d", i))
@@ -354,15 +350,12 @@ func run(stdin io.Reader, stdout io.WriteSeeker) error {
 			fmt.Sprintf("Total bytes #%d", i))
 	}
 
+	// Parse
 	f.Parse(convertArgs(os.Args[1:]))
 
-	// If -fullscreen, attempt to get terminal size
+	// If -fullscreen is set, we don't detect real terminal size;
+	// we just keep 80x24, but do a full-screen effect anyway.
 	if *fsFullscreen {
-		w, h, err := term.GetSize(int(os.Stdout.Fd()))
-		if err == nil {
-			terminalCols = w
-			terminalRows = h
-		}
 		fullscreen = true
 	}
 
@@ -417,6 +410,8 @@ func run(stdin io.Reader, stdout io.WriteSeeker) error {
 
 	// concurrency
 	var ddWg sync.WaitGroup
+
+	// FIX: add "range" here
 	for _, t := range transfers {
 		ddWg.Add(1)
 		go func(tr *Transfer) {
@@ -478,11 +473,12 @@ func (mp *MultiProgress) startProgress() {
 	linesPerTransfer := 2
 	totalLines := linesPerTransfer * len(mp.Transfers)
 
-	// If fullscreen, clear screen and vertically center if there's room
+	// If fullscreen, clear screen and vertically center for a 24-row terminal
 	if mp.Fullscreen {
 		// Clear entire screen, move cursor to top-left
 		fmt.Print("\033[2J\033[H")
 
+		// If we have room, add blank lines so output is centered vertically
 		if mp.TermRows > totalLines {
 			topMargin := (mp.TermRows - totalLines) / 2
 			fmt.Print(strings.Repeat("\n", topMargin))
