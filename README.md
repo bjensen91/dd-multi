@@ -2,7 +2,7 @@
 
 &#x20;
 
-A Go-based `dd` clone that supports **parallel transfers** with per-transfer progress bars, timers, and MB/s rates. This tool simplifies bulk copying, wiping drives, and working with raw block devices while providing a clean, visual interface for monitoring progress.
+A Go-based `dd` clone that supports **parallel transfers** with per-transfer progress bars, timers, and MB/s rates. This tool simplifies bulk copying, wiping drives, and working with raw block devices while providing a clean, visual interface for monitoring progress. There are no external dependencies and compiles on Linux and FreeBSD.
 
 ---
 
