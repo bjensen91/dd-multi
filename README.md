@@ -31,10 +31,10 @@ Clone the repository and build the binary:
 ```bash
 git clone https://github.com/bjensen91/multi-transfer-dd
 cd multi-transfer-dd
-go build -o dd_multi_n dd_multi_n.go
+go build -o dd-multi dd-multi.go
 ```
 
-The compiled binary `dd_multi_n` will be created in the current directory.
+The compiled binary `dd-multi` will be created in the current directory.
 
 ---
 
@@ -45,7 +45,7 @@ The compiled binary `dd_multi_n` will be created in the current directory.
 Run 3 parallel transfers:
 
 ```bash
-./dd_multi_n \
+./dd-multi \
   -numTransfers=3 \
   -if1=/dev/zero -of1=zero1.img -bs1=4M -size1=1073741824 -oflag1=sync \
   -if2=/dev/urandom -of2=random1.img -bs2=1M -size2=1073741824 -oflag2=sync \
@@ -95,7 +95,7 @@ For each transfer, you’ll see:
 ### Wipe Two Drives in Parallel
 
 ```bash
-sudo ./dd_multi_n \
+sudo ./dd-multi \
   -numTransfers=2 \
   -if1=/dev/zero -of1=/dev/nvme0n1 -bs1=4M -size1=1000000000000 -oflag1=sync \
   -if2=/dev/zero -of2=/dev/nvme1n1 -bs2=4M -size2=1000000000000 -oflag2=sync
@@ -106,7 +106,7 @@ This wipes two NVMe drives with zeros in parallel.
 ### Copy an ISO to a USB Stick
 
 ```bash
-sudo ./dd_multi_n \
+sudo ./dd-multi \
   -numTransfers=1 \
   -if1=Fedora.iso -of1=/dev/sdb -bs1=4M -size1=2147483648 -oflag1=sync
 ```
