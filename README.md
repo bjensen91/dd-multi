@@ -46,11 +46,10 @@ The compiled binary `dd-multi` will be created in the current directory.
 Run 3 parallel transfers:
 
 ```bash
-./dd-multi \
-  -numTransfers=3 \
-  -if1=/dev/zero -of1=zero1.img -bs1=4M -size1=1073741824 -oflag1=sync \
-  -if2=/dev/urandom -of2=random1.img -bs2=1M -size2=1073741824 -oflag2=sync \
-  -if3=input.iso -of3=output.img -bs3=1M -size3=2147483648
+sudo ./dd-multi -numTransfers=3 \
+-if1=/dev/urandom -of1=random.img -bs1=4M -count1=250 -oflag1=sync \
+-if2=/dev/zero    -of2=zero.img   -bs2=4M -count2=250 -oflag2=sync \
+-if3=FreeBSD.iso  -of3=/dev/sdX   -bs3=4M -oflag3=sync
 ```
 
 Each transfer has its own configuration:
