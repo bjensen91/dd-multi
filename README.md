@@ -9,6 +9,7 @@ A Go-based `dd` clone that supports **parallel transfers** with per-transfer pro
 ## Features
 
 - **Parallel Transfers**: Supports up to 50 concurrent input-output transfers with independent configurations.
+  - (If you need more than 50 parallel dd transfers, recompile with a larger MaxTransfers)
 - **Detailed Progress Bars**: Visual dark-green-to-light-green progress bars for each transfer, showing:
   - Time remaining (or elapsed time after completion).
   - Real-time MB/s transfer rates.
