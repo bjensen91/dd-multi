@@ -1,4 +1,4 @@
-# Multi-Transfer DD Clone
+# Multi-Transfer DD Clone for Linux and FreeBSD
 
 &#x20;
 
